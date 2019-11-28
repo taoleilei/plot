@@ -17,7 +17,7 @@ psutil==3.4.2
 PyMySQL==0.7.11
 pytz==2014.10
 PyYAML==3.11
-requests==2.9.1
+requests==2.20.0
 six==1.10.0
 stomp.py==4.1.10
 webservices==0.7
