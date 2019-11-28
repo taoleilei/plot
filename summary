@@ -1,0 +1,242 @@
+- ssh远程root登陆访问
+vim /etc/ssh/sshd_config
+#PasswordAuthentication yes  改为  PasswordAuthentication yes
+PermitRootLogin prohibit-password 改为 PermitRootLogin yes
+
+- 查看系统版本 
+lsb_release -a
+
+- pip安装
+$ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py   # 下载安装脚本
+$ sudo python get-pip.py    # 运行安装脚本
+
+- docker安装
+wget -qO- https://get.docker.com/ | sh
+
+{
+    "registry-mirrors": ["http://hub-mirror.c.163.com"]
+}
+
+wget -Y on -e "http_proxy=https://iiebc:iiecncert@192.168.1.201:3128" -qO- https://get.docker.com/ | sh
+
+- 释放ip并重新分配
+dhclient ens33 -r
+dhclient ens33
+
+- python开发环境安装
+sudo apt-get install python3 python-dev python3-dev build-essential libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev python-pip
+
+- 安装中文语言包和中文字符集
+locale -a    # 查看已安装的语言包
+sudo apt-get install language-pack-zh-hans
+sudo apt-get install language-pack-zh-hant
+
+cd /usr/share/locales    
+sudo ./install-language-pack zh_CN   # 开始安装zh_CN中文字符集
+sudo ./install-language-pack zh_HK   # 开始安装zh_HK中文字符集
+
+sudo vim /etc/environment     # 配置环境变量配置文件
+LC_CTYPE＝"zh_CN.UTF-8"
+
+
+- zabbix解决中文乱码
+sudo vim /usr/share/zabbix/include/locales.inc.php    # 将不需要的语言设置为false
+C:\Windows\Fonts 目录下拷贝字体文件到 /usr/share/zabbix/fonts
+sed -i 's/graphfont/SimHei/g' /usr/share/zabbix/include/defines.inc.php    # 字体替换
+
+
+- zabbix自带mysql模板配置
+创建mysql用户
+> GRANT USAGE ON *.* TO 'monitor'@'localhost' IDENTIFIED BY 'monitor';
+> FLUSH PRIVILEGES;
+
+vim /etc/zabbix/.my.cnf
+[mysql]
+host     = localhost
+user     = monitor
+password = monitor
+socket   = /run/mysqld/mysqld.sock
+[mysqladmin]
+host     = localhost
+user     = monitor
+password = monitor
+socket   = /run/mysqld/mysqld.sock
+
+cd /etc/zabbix/zabbix_agentd.d
+sed -i 's@/var/lib/zabbix@/etc/zabbix@g' userparameter_mysql.conf
+systemctl restart zabbix-agent
+
+
+
+- mysql修改字符集
+vim /etc/mysql/mysql.conf.d/mysqld.cnf
+[client]
+default-character-set=utf8
+
+[mysqld]
+character-set-server=utf8 
+collation-server=utf8_general_ci
+
+# 修改数据库:  
+ALTER DATABASE database_name CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;  
+# 修改表:  
+ALTER TABLE table_name CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;  
+# 修改表字段:  
+ALTER TABLE table_name CHANGE column column_name VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+docker run -d -p 9000:9000 \
+    --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --name portainer-web \
+    portainer/portainer
+
+
+docker run -d \
+-p 3306:3306 \
+-e MYSQL_ROOT_PASSWORD=iiecas \
+-e XTRABACKUP_PASSWORD=iiecas \
+-e CLUSTER_NAME=cluster1 \
+-v v1:/var/lib/mysql \
+-v backup:/data \
+--name=node1 \
+--net=pxc-network \
+pxc
+
+
+docker run -d \
+-p 3307:3306 \
+-e MYSQL_ROOT_PASSWORD=iiecas \
+-e XTRABACKUP_PASSWORD=iiecas \
+-e CLUSTER_NAME=cluster1 \
+-e CLUSTER_JOIN=node1 \
+-v v2:/var/lib/mysql \
+-v backup:/data \
+--name=node2 \
+--net=pxc-network \
+--ip=172.19.0.3 \
+pxc
+
+docker run -d \
+-p 3308:3306 \
+-e MYSQL_ROOT_PASSWORD=iiecas \
+-e XTRABACKUP_PASSWORD=iiecas \
+-e CLUSTER_NAME=cluster1 \
+-e CLUSTER_JOIN=node1 \
+-v v3:/var/lib/mysql \
+-v backup:/data \
+--name=node3 \
+--net=pxc-network \
+--ip=172.19.0.4 \
+pxc
+
+
+docker run --name zabbix-agent -e ZBX_HOSTNAME="Zabbix server" -e ZBX_SERVER_HOST="zabbix-server" --net=zabbix-network -d zabbix/zabbix-agent:latest
+
+docker run --name zabbix-frontend -e DB_SERVER_HOST="mariadb" -e MYSQL_ROOT_PASSWORD="iiecas" -e MYSQL_USER="zabbix" -e MYSQL_PASSWORD="zabbix" -e ZBX_SERVER_HOST="zabbix-server" -e PHP_TZ="Asia/Shanghai" -p 80:80 --net=zabbix-network -d zabbix/zabbix-web-nginx-mysql:latest
+
+docker run --name zabbix-server -e DB_SERVER_HOST="mariadb" -e MYSQL_ROOT_PASSWORD="iiecas" -e MYSQL_USER="zabbix" -e MYSQL_PASSWORD="zabbix" --net=zabbix-network -d zabbix/zabbix-server-mysql:latest
+
+docker run --name mariadb -e MYSQL_ROOT_PASSWORD="iiecas" -p 3306:3306 -v m1:/var/lib/mysql --net=zabbix-network -d mariadb:latest
+
+
+- gitlab
+docker run -d --name gitlab --hostname gitlab --restart always -p 4443:443 -p 8080:80 -p 2222:22 -v ~/gitlab/config:/etc/gitlab -v ~/gitlab/data:/var/opt/gitlab -v ~/gitlab/logs:/var/log/gitlab gitlab/gitlab-ce
+
+
+- portainer_agent
+1. docker network create --driver overlay --attachable portainer_agent_network
+2. docker service create \
+    --name portainer_agent \
+    --network portainer_agent_network \
+    -e AGENT_CLUSTER_ADDR=tasks.portainer_agent \
+    --mode global \
+    --constraint 'node.platform.os == linux' \
+    --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \
+    --mount type=bind,src=//var/lib/docker/volumes,dst=/var/lib/docker/volumes \
+    portainer/agent
+3. docker service create \
+    --name portainer \
+    --network portainer_agent_network \
+    --publish 9000:9000 \
+    --publish 8000:8000 \
+    --replicas=1 \
+    --constraint 'node.role == manager' \
+    portainer/portainer -H "tcp://tasks.portainer_agent:9001" --tlsskipverify
+
+
+- 创建git 仓库
+添加一个”Git”用户和组
+adduser --system --shell /bin/bash --gecos 'git version control by pi' --group --home /home/git git
+passwd git
+
+mkdir test.git
+cd test.git
+git --bare init
+
+git remote add [仓库名] [your name]@[your IP]:/home/leilei/test.git
+git add .
+git commit -am "Initial"
+git push pi master -f
+
+
+
+
+RUN groupadd -r vector4wang && useradd -r -g vector4wang vector4wang
+
+
+RUN sed -i 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//http:\/\/mirrors\.163\.com\/ubuntu\//g' /etc/apt/sources.list
+
+sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+
+
+datetime.datetime.strptime(t,'%Y-%m-%d %H:%M:%S')
+
+
+appflow_pcap_file
+b_case_display
+b_entity_access
+b_event_detect
+b_example   CURRENT_TIMESTAMP
+b_machine*
+b_node*
+django_root
+emud*
+error_info
+mondis*
+sys_*
+django_site
+temp
+.TZJC_FS_ENGINES
+
+
+# docker镜像报错
+ImportError: No module named _sysconfigdata_nd
+sudo ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
+
+
+(
+312, 315, 317, 323, 325, 328, 335, 339, 341, 347, 349, 353, 358, 362, 365, 367, 368, 373, 376, 380, 382, 385, 386, 389, 394, 396, 57, 60, 62, 63, 75, 77, 81, 87, 89, 91, 97, 98, 104, 111, 115, 121, 123, 127, 137, 145, 151, 153, 158, 179, 183, 185, 188, 189, 193, 197, 199, 205, 207, 213, 219, 220, 225, 228, 229, 232, 233, 236, 241, 244, 266, 269, 270, 273, 278, 280, 283, 288, 291, 296, 299, 304, 305, 308)
+
+
+{
+    "taskid":19834,
+    "name":"DEPLOY",
+    "type":"M",
+    "caseid":"20191011172956024620",
+    "define":
+    {
+        "NetMFile":"CaseDefinitions/20191011172956024620/Monitor/NetMFile.xml", 
+        "HostCFile":"", 
+        "HostMFile":""          
+    }   
+}
+
+312
+315
+317
+323
+325项目立项任务书V4.0

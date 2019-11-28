@@ -1,0 +1,33 @@
+version: "3"
+services:
+  db:
+    image: pxc:latest
+    ports:
+      - "23313:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=iiecas
+      - XTRABACKUP_PASSWORD=iiecas
+      - CLUSTER_NAME=cluster2
+    volumes:
+      - v8:/var/lib/mysql
+      - backup:/data
+      - ./conf/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
+      - ./initialdb:/docker-entrypoint-initdb.d
+    restart: always
+    networks:
+      plot-network:
+  web:
+    image: plot:1.0
+    depends_on:
+      - db
+    volumes:
+      - /home/iiebc/j:/var/www
+      - /usr/share/zoneinfo:/usr/share/zoneinfo
+    restart: always
+    networks:
+      plot-network:
+volumes:
+  v8:
+  backup:
+networks:
+  plot-network:

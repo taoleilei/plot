@@ -1,0 +1,56 @@
+version: "3"
+services:
+  db:
+    image: pxc:latest
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=iiecas
+      - XTRABACKUP_PASSWORD=iiecas
+      - CLUSTER_NAME=cluster1
+    volumes:
+      - v1:/var/lib/mysql
+      - backup:/data
+      - ./conf/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
+    restart: always
+    networks:
+      pxc-network:
+  app:
+    image: plot:2.0
+    environment:
+      - DB_NAME=x
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=iiecas
+    depends_on:
+      - db
+    links:
+      - db:db
+    volumes:
+      - ./conf/uwsgi.ini:/etc/uwsgi/apps-available/uwsgi.ini
+      - /home/leilei/images/j:/var/www
+      - /usr/share/zoneinfo:/usr/share/zoneinfo
+    restart: always
+    networks:
+      pxc-network:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    links:
+      - app:app
+    volumes:
+      - ./conf/mysite.conf:/etc/nginx/conf.d/mysite.conf
+      - /home/leilei/images/j:/var/www
+    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/mysite.conf > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+    restart: always
+    networks:
+      pxc-network:
+volumes:
+  v1:
+  backup:
+networks:
+  pxc-network:

@@ -1,0 +1,53 @@
+version: "3"
+services:
+  db1:
+    image: pxc:latest
+    ports:
+      - "23313:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=iiecas
+      - XTRABACKUP_PASSWORD=iiecas
+      - CLUSTER_NAME=cluster2
+    volumes:
+      - d1:/var/lib/mysql
+      - backup:/data
+      - /home/leilei/pxc/conf:/etc/mysql/conf.d
+      - /home/leilei/pxc/initialdb:/docker-entrypoint-initdb.d
+    networks:
+      plot-network:
+    container_name: "db1" 
+  h3:
+    image: haproxy:latest
+    ports:
+      - "4005:8888"
+      - "4006:3306"
+    depends_on:
+      - db1
+    volumes:
+      - /home/leilei/haproxy/h3:/usr/local/etc/haproxy
+      - /home/leilei/haproxy/keepalived/keepalived.conf:/etc/keepalived/keepalived.conf
+    command: haproxy -f /usr/local/etc/haproxy/haproxy.cfg && service keepalived start
+    restart: always
+    networks:
+      plot-network:
+    container_name: "h3" 
+  h4:
+    image: haproxy:latest
+    ports:
+      - "4007:8888"
+      - "4008:3306"
+    depends_on:
+      - db1
+    volumes:
+      - /home/leilei/haproxy/h4:/usr/local/etc/haproxy
+      - /home/leilei/haproxy/keepalived/keepalived.conf:/etc/keepalived/keepalived.conf
+    command: haproxy -f /usr/local/etc/haproxy/haproxy.cfg && service keepalived start
+    restart: always
+    networks:
+      plot-network:
+    container_name: "h4" 
+volumes:
+  d1:
+  backup:
+networks:
+  plot-network:
