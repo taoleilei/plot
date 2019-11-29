@@ -218,25 +218,10 @@ ImportError: No module named _sysconfigdata_nd
 sudo ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 
 
-(
-312, 315, 317, 323, 325, 328, 335, 339, 341, 347, 349, 353, 358, 362, 365, 367, 368, 373, 376, 380, 382, 385, 386, 389, 394, 396, 57, 60, 62, 63, 75, 77, 81, 87, 89, 91, 97, 98, 104, 111, 115, 121, 123, 127, 137, 145, 151, 153, 158, 179, 183, 185, 188, 189, 193, 197, 199, 205, 207, 213, 219, 220, 225, 228, 229, 232, 233, 236, 241, 244, 266, 269, 270, 273, 278, 280, 283, 288, 291, 296, 299, 304, 305, 308)
-
-
-{
-    "taskid":19834,
-    "name":"DEPLOY",
-    "type":"M",
-    "caseid":"20191011172956024620",
-    "define":
-    {
-        "NetMFile":"CaseDefinitions/20191011172956024620/Monitor/NetMFile.xml", 
-        "HostCFile":"", 
-        "HostMFile":""          
-    }   
-}
-
-312
-315
-317
-323
-325项目立项任务书V4.0
+docker run -d \
+-p 80:80 \
+-v /home/iiebc/plot:/var/www \
+-v /usr/share/zoneinfo:/usr/share/zoneinfo \
+--name=plot \
+--net=pxc-network \
+plot:1.0
