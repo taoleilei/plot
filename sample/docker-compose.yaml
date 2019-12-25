@@ -1,33 +1,51 @@
-version: "3"
+version: "3.7"
 services:
-  db:
+  node1:
     image: pxc:latest
     ports:
-      - "23313:3306"
+      - "6033:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=iiecas
       - XTRABACKUP_PASSWORD=iiecas
-      - CLUSTER_NAME=cluster2
+      - CLUSTER_NAME=pxc-cluster
     volumes:
-      - v8:/var/lib/mysql
+      - db1:/var/lib/mysql
       - backup:/data
-      - ./conf/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
-      - ./initialdb:/docker-entrypoint-initdb.d
-    restart: always
+      - /etc/localtime:/etc/localtime
     networks:
-      plot-network:
-  web:
-    image: plot:1.0
-    depends_on:
-      - db
+      mysql-network:
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+
+  ha:
+    image: haproxy:web
     volumes:
-      - /home/iiebc/j:/var/www
-      - /usr/share/zoneinfo:/usr/share/zoneinfo
-    restart: always
+      - /home/iiebc/pxc/sample/haproxy:/usr/local/etc/haproxy
     networks:
-      plot-network:
+      - mysql-network
+    depends_on:
+      - node1
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
 volumes:
-  v8:
+  db1:
   backup:
+
 networks:
-  plot-network:
+  mysql-network:
+    driver: overlay
+    attachable: true
