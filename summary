@@ -31,7 +31,11 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 - docker离线安装
 https://download.docker.com/linux/ubuntu/dists/
-sudo dpkg -i docker-ce_19.03.5_3-0_ubuntu-xenial_amd64.deb
+sudo dpkg -i docker-ce-cli_xxx.deb
+sudo dpkg -i containerd.io_xxx.deb
+sudo dpkg -i docker-ce_xxx.deb
+sudo groupadd docker
+sudo usermod -aG docker $USER
 
 - docker compose离线安装
 sudo mv docker-compose-Linux-x86_64 /usr/local/bin/docker-compose
