@@ -10,9 +10,9 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 &&
 
 RUN apt-get update 
 
-RUN apt-get -y install musl-dev libxslt-dev build-essential \ 
-    libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev libmysqlclient-dev \ 
-    libtiff5-dev libjpeg-dev libfreetype6-dev liblcms2-dev libwebp-dev python \ 
+RUN apt-get -y install musl-dev libxslt-dev build-essential \
+    libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev libmysqlclient-dev \
+    libtiff5-dev libjpeg-dev libfreetype6-dev liblcms2-dev libwebp-dev python \
     python-dev python-pip uwsgi uwsgi-plugin-python nginx
 
 COPY requirements.txt /var/www/
