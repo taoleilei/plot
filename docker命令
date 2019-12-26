@@ -267,3 +267,19 @@ ansible master -m service -a 'name=nginx state=restarted'
 ansible all -m copy -a 'src=views.py dest=/var/www/plot'
 ansible slave -m service -a 'name=uwsgi state=restarted'
 ansible slave -m service -a 'name=nginx state=restarted'
+
+
+
+
+docker run -d \
+-p 6034:3306 \
+-e MYSQL_ROOT_PASSWORD=iiecas \
+-e XTRABACKUP_PASSWORD=iiecas \
+-e CLUSTER_NAME=pxc-cluster \
+-e CLUSTER_JOIN=pxc1 \
+-v db2:/var/lib/mysql \
+-v backup:/data \
+-v /etc/localtime:/etc/localtime \
+--name=pxc2 \
+--net=pxc_mysql-network \
+pxc

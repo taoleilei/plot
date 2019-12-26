@@ -18,6 +18,28 @@ wget -qO- https://get.docker.com/ | sh
 }
 
 wget -Y on -e "http_proxy=https://iiebc:iiecncert@192.168.1.201:3128" -qO- https://get.docker.com/ | sh
+- docker安装
+wget -qO- https://get.docker.com/ | sh
+sudo groupadd docker
+sudo usermod -aG docker $USER
+
+
+- docker compose安装
+sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+#sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+- docker离线安装
+https://download.docker.com/linux/ubuntu/dists/
+sudo dpkg -i docker-ce-cli_xxx.deb
+sudo dpkg -i containerd.io_xxx.deb
+sudo dpkg -i docker-ce_xxx.deb
+sudo groupadd docker
+sudo usermod -aG docker $USER
+
+- docker compose离线安装
+sudo mv docker-compose-Linux-x86_64 /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose 
 
 - 释放ip并重新分配
 dhclient ens33 -r
@@ -131,6 +153,7 @@ docker run -d \
 pxc
 
 
+- zabbix测试
 docker run --name zabbix-agent -e ZBX_HOSTNAME="Zabbix server" -e ZBX_SERVER_HOST="zabbix-server" --net=zabbix-network -d zabbix/zabbix-agent:latest
 
 docker run --name zabbix-frontend -e DB_SERVER_HOST="mariadb" -e MYSQL_ROOT_PASSWORD="iiecas" -e MYSQL_USER="zabbix" -e MYSQL_PASSWORD="zabbix" -e ZBX_SERVER_HOST="zabbix-server" -e PHP_TZ="Asia/Shanghai" -p 80:80 --net=zabbix-network -d zabbix/zabbix-web-nginx-mysql:latest
@@ -181,21 +204,21 @@ git push pi master -f
 
 
 
-
+- 添加用户
 RUN groupadd -r vector4wang && useradd -r -g vector4wang vector4wang
 
 
+- 修改源
 RUN sed -i 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//http:\/\/mirrors\.163\.com\/ubuntu\//g' /etc/apt/sources.list
-
 sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
-
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
 
 
+- python时间格式转换
 datetime.datetime.strptime(t,'%Y-%m-%d %H:%M:%S')
 
-
+- 非innodb表
 appflow_pcap_file
 b_case_display
 b_entity_access
@@ -218,25 +241,31 @@ ImportError: No module named _sysconfigdata_nd
 sudo ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 
 
-(
-312, 315, 317, 323, 325, 328, 335, 339, 341, 347, 349, 353, 358, 362, 365, 367, 368, 373, 376, 380, 382, 385, 386, 389, 394, 396, 57, 60, 62, 63, 75, 77, 81, 87, 89, 91, 97, 98, 104, 111, 115, 121, 123, 127, 137, 145, 151, 153, 158, 179, 183, 185, 188, 189, 193, 197, 199, 205, 207, 213, 219, 220, 225, 228, 229, 232, 233, 236, 241, 244, 266, 269, 270, 273, 278, 280, 283, 288, 291, 296, 299, 304, 305, 308)
+- ubuntu18.04修改ip
+sudo vim /etc/netplan/50-cloud-init.yaml
+network:
+    ethernets:
+        ens160:
+            addresses:
+                - 210.72.92.28/24 # IP及掩码
+            gateway4: 210.72.92.254 # 网关
+            nameservers:
+                addresses:
+                    - 8.8.8.8 # DNS
+    version: 2
+sudo netplan apply
 
 
-{
-    "taskid":19834,
-    "name":"DEPLOY",
-    "type":"M",
-    "caseid":"20191011172956024620",
-    "define":
-    {
-        "NetMFile":"CaseDefinitions/20191011172956024620/Monitor/NetMFile.xml", 
-        "HostCFile":"", 
-        "HostMFile":""          
-    }   
-}
+- 运行青岛比赛
+docker run -d \
+-p 80:80 \
+-v /home/iiebc/plot:/var/www \
+-v /usr/share/zoneinfo:/usr/share/zoneinfo \
+--name=plot \
+--net=pxc-network \
+plot:1.0
 
-312
-315
-317
-323
-325项目立项任务书V4.0
+
+- 设置网卡混杂模式
+ifconfig eth1 promisc  设置混杂模式
+ifconfig eth1 -promisc 取消混杂模式

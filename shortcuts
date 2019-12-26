@@ -32,6 +32,13 @@
 34 F2 下一个书签
 35 Shift+F2 上一个书签
 
+# 离线下载、安装python包
+python -m pip install -U pip
+pip freeze > requirements.txt
+mkdir package && cd package
+pip download -r requirements.txt
+pip install --no-index --find-links=package -r requirements.txt
+
 
 pip install --user --upgrade pipenv # 用户安装pipenv 
 pipenv --three # 会使用当前系统的Python3创建环境 
