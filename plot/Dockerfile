@@ -1,9 +1,7 @@
 FROM ubuntu:16.04
 MAINTAINER taoleilei <taoleilei6176@163.com>
 
-
 COPY sources.list /etc/apt
-
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
